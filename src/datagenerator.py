@@ -1,5 +1,7 @@
 import linecache
 import random
+import json
+import re
 
 import numpy as np
 from tensorflow.keras.utils import Sequence
@@ -72,6 +74,32 @@ class Vocab(object):
             f.write(output_str)
 
 
+class Tweets(Vocab):
+    def __init__(self):
+        self.platform_name = 'politifact'
+        self.__path = Path('./data/fakenewsnet_dataset/politifact/')
+        self.PAD = 0
+        self.BOS = 1
+        self.EOS = 2
+        self.UNK = 3
+        self.PAD_TOKEN = '<PAD>'
+        self.BOS_TOKEN = '<S>'
+        self.EOS_TOKEN = '</S>'
+        self.UNK_TOKEN = '<UNK>'
+        self.word2id = {
+            self.PAD_TOKEN: self.PAD,
+            self.BOS_TOKEN: self.BOS,
+            self.EOS_TOKEN: self.EOS,
+            self.UNK_TOKEN: self.UNK,
+        }
+        self.id2word = {v: k for k, v in self.word2id.items()}
+        self.sentences = [load_json(json_file) for json_file in self.__path.glob(
+            '**/*.json') if re.search('/tweets/', str(json_file))]
+        self.build_vocab(self.sentences)
+        self.vocab_num = len(self.word2id)
+        self.sentence_num = len(self.sentences)
+
+
 def load_data(file_path):
     data = []
     for line in open(file_path, encoding='utf-8'):
@@ -86,6 +114,12 @@ def count_data(file_path):
         data_num += 1
     return data_num
 
+
+def load_json(file_path):
+    json_data = json.loads(file_path)
+    text = json_data['text']
+    data = text.strip().split()
+    return data
 
 def padding(sentences, T, PAD=0):
     sentences += [PAD for i in range(T - len(sentences))]

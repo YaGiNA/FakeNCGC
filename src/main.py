@@ -28,7 +28,7 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 
 from agent import Agent
-from datagenerator import Vocab, DataForGenerator, DataForDiscriminator
+from datagenerator import Vocab, DataForGenerator, DataForDiscriminator, Tweet
 from environment import Environment
 
 sess = tf.Session()
@@ -76,7 +76,8 @@ g_pre_weight = os.path.join('data', 'save',
 d_pre_weight = os.path.join('data', 'save',
                             'pre_d_weights.h5')
 
-vocab = Vocab(input_data)
+# vocab = Vocab(input_data)
+vocab = Tweet()
 vocab_size = vocab.vocab_num
 pos_sentence_num = vocab.sentence_num
 vocab.write_word2id(input_data, id_input_data)
