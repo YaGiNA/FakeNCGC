@@ -1,4 +1,5 @@
 FROM tensorflow/tensorflow:latest-gpu-py3
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Linuxパッケージのインストール
 RUN apt-get update && apt-get install -y \
@@ -38,7 +39,7 @@ RUN update-locale LANG=$LANG
 RUN pip3 install --upgrade pip
 COPY requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
-COPY . /tmp/
+# COPY . /tmp/
 
 # pybullet-gymのインストール
 RUN git clone https://github.com/benelot/pybullet-gym
