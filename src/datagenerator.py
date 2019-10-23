@@ -2,7 +2,7 @@ import linecache
 import random
 import json
 import re
-
+from pathlib import Path
 import numpy as np
 from tensorflow.keras.utils import Sequence
 from tensorflow.keras.utils import to_categorical
@@ -77,7 +77,7 @@ class Vocab(object):
 class Tweets(Vocab):
     def __init__(self):
         self.platform_name = 'politifact'
-        self.__path = Path('./data/fakenewsnet_dataset/politifact/')
+        self.__path = Path('./data/fakenewsnet_dataset/politifact/real/')
         self.PAD = 0
         self.BOS = 1
         self.EOS = 2
@@ -93,12 +93,25 @@ class Tweets(Vocab):
             self.UNK_TOKEN: self.UNK,
         }
         self.id2word = {v: k for k, v in self.word2id.items()}
-        self.sentences = [load_json(json_file) for json_file in self.__path.glob(
-            '**/*.json') if re.search('/tweets/', str(json_file))]
+        self.sentences = [load_json(str(json_file.resolve())) for json_file in self.__path.glob(
+            '**/*.json') if re.search('/tweets/.*8', str(json_file))]
         self.build_vocab(self.sentences)
         self.vocab_num = len(self.word2id)
         self.sentence_num = len(self.sentences)
 
+    def write_word2id(self, output_path):
+        ids_sentences = []
+        for words in self.sentences:
+            ids_words = [
+                str(self.word2id.get(word, self.UNK)) for word in words
+            ]
+            ids_sentences.append(ids_words)
+        self.data_num = len(ids_sentences)
+        output_str = ''
+        for i in range(len(self.sentences)):
+            output_str += ' '.join(ids_sentences[i]) + '\n'
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(output_str)
 
 def load_data(file_path):
     data = []
@@ -116,7 +129,8 @@ def count_data(file_path):
 
 
 def load_json(file_path):
-    json_data = json.loads(file_path)
+    with open(file_path, 'r') as f:
+        json_data = json.load(f)
     text = json_data['text']
     data = text.strip().split()
     return data

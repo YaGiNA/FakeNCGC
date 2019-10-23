@@ -28,10 +28,15 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 
 from agent import Agent
-from datagenerator import Vocab, DataForGenerator, DataForDiscriminator, Tweet
+from datagenerator import Vocab, DataForGenerator, DataForDiscriminator, Tweets
 from environment import Environment
+from tensorflow.core.protobuf import rewriter_config_pb2
 
-sess = tf.Session()
+config_proto = tf.ConfigProto()
+off = rewriter_config_pb2.RewriterConfig.OFF
+config_proto.graph_options.rewrite_options.arithmetic_optimization = off
+config_proto.graph_options.rewrite_options.memory_optimization = off
+sess = tf.Session(config=config_proto)
 K.set_session(sess)
 
 # hyperparameters
@@ -77,10 +82,11 @@ d_pre_weight = os.path.join('data', 'save',
                             'pre_d_weights.h5')
 
 # vocab = Vocab(input_data)
-vocab = Tweet()
+vocab = Tweets()
 vocab_size = vocab.vocab_num
 pos_sentence_num = vocab.sentence_num
-vocab.write_word2id(input_data, id_input_data)
+# vocab.write_word2id(input_data, id_input_data)
+vocab.write_word2id(id_input_data)
 sampling_num = vocab.data_num
 
 env = Environment(batch_size, vocab_size, emb_size,
