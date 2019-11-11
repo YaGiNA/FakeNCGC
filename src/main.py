@@ -31,16 +31,18 @@ from agent import Agent
 from datagenerator import Vocab, DataForGenerator, DataForDiscriminator, Tweets
 from environment import Environment
 from tensorflow.core.protobuf import rewriter_config_pb2
-
+"""
 config_proto = tf.ConfigProto()
 off = rewriter_config_pb2.RewriterConfig.OFF
 config_proto.graph_options.rewrite_options.arithmetic_optimization = off
 config_proto.graph_options.rewrite_options.memory_optimization = off
 sess = tf.Session(config=config_proto)
+"""
+sess = tf.Session()
 K.set_session(sess)
 
 # hyperparameters
-batch_size = 30
+batch_size = 10
 T = 25  # max_length of sentences
 emb_size = 128  # embedding size
 g_hidden = 128  # generator hidden size
@@ -52,8 +54,8 @@ dropout = 0.0
 # pretraining parameters
 g_pre_lr = 1e-2  # generator pre_training learning rate
 d_pre_lr = 1e-2  # discriminator pre_training learning rate
-g_pre_episodes = 10  # generator pre_training epochs
-d_pre_episodes = 4  # discriminator pre_training epochs
+g_pre_episodes = 5  # generator pre_training epochs
+d_pre_episodes = 2  # discriminator pre_training epochs
 d_epochs = 1
 
 # training parameters

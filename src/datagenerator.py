@@ -4,6 +4,8 @@ import json
 import re
 from pathlib import Path
 import numpy as np
+import unicodedata
+import random
 from tensorflow.keras.utils import Sequence
 from tensorflow.keras.utils import to_categorical
 
@@ -93,19 +95,16 @@ class Tweets(Vocab):
             self.UNK_TOKEN: self.UNK,
         }
         self.id2word = {v: k for k, v in self.word2id.items()}
-        self.sentences = [load_json(str(json_file.resolve())) for json_file in self.__path.glob(
-            '**/*.json') if re.search('/tweets/.*8', str(json_file))]
+        self.sentences = list(filter(lambda sentence: sentence is not None, 
+            [load_json(str(json_file.resolve())) for json_file in self.__path.glob(
+                '**/*.json') if re.search('/tweets/.*85', str(json_file))]))
         self.build_vocab(self.sentences)
         self.vocab_num = len(self.word2id)
         self.sentence_num = len(self.sentences)
 
     def write_word2id(self, output_path):
-        ids_sentences = []
-        for words in self.sentences:
-            ids_words = [
-                str(self.word2id.get(word, self.UNK)) for word in words
-            ]
-            ids_sentences.append(ids_words)
+        ids_sentences = [[str(self.word2id.get(word, self.UNK))
+                          for word in words] for words in self.sentences]
         self.data_num = len(ids_sentences)
         output_str = ''
         for i in range(len(self.sentences)):
@@ -116,6 +115,9 @@ class Tweets(Vocab):
 def load_data(file_path):
     data = []
     for line in open(file_path, encoding='utf-8'):
+        unicodedata_array = [unicodedata.east_asian_width(letter) for letter in line]
+        if 'W' in unicodedata_array:
+            continue    # Except Japanese Kanji & Kana
         words = line.strip().split()
         data.append(words)
     return data
@@ -123,7 +125,7 @@ def load_data(file_path):
 
 def count_data(file_path):
     data_num = 0
-    for line in open(file_path, encoding='utf-8'):
+    for _ in open(file_path, encoding='utf-8'):
         data_num += 1
     return data_num
 
@@ -132,6 +134,10 @@ def load_json(file_path):
     with open(file_path, 'r') as f:
         json_data = json.load(f)
     text = json_data['text']
+    unicodedata_array = [
+        unicodedata.east_asian_width(letter) for letter in text]
+    if 'W' in unicodedata_array:
+        return None    # Except Japanese Kanji & Kana
     data = text.strip().split()
     return data
 
